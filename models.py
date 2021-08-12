@@ -31,5 +31,5 @@ if __name__ == "__main__":
   inputs = torch.zeros(1,1,28,28, dtype = torch.float, requires_grad = True);
   lenet = LeNet();
   results = lenet(inputs);
-  make_dot(results);
+  make_dot(results, params = dict(list(lenet.named_parameters()))).render('lenet');
 
