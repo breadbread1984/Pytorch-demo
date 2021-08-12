@@ -6,7 +6,7 @@ from absl import app, flags;
 import numpy as np;
 from torch.optim import Adam;
 from torch.nn import CrossEntropyLoss, DataParallel;
-from torch import device, save;
+from torch import device, save, no_grad;
 from torch.cuda import device_count;
 from models import LeNet;
 from create_dataset import load_dataset;
@@ -31,6 +31,7 @@ def main(unused_argv):
   optimizer = Adam(lenet.parameters(), lr = 1e-3);
   crossentropy = CrossEntropyLoss();
   for epoch in range(FLAGS.epochs):
+    lenet.train(); # model in training mode
     for batch_id, (images, labels) in enumerate(trainset):
       images, labels = images.to(location), labels.to(location); # move to device
       optimizer.zero_grad(); # zero gradients
@@ -45,12 +46,14 @@ def main(unused_argv):
         save(lenet, join('models', 'lenet.pkl'));
     count = 0;
     correct_count = 0;
-    for batch_id, (images, labels) in enumerate(testset):
-      images, labels = images.to(location), labels.to(location);
-      preds = lenet(images);
-      idx = np.argmax(preds.cpu().detach().numpy(), axis = -1);
-      correct_count += np.sum(idx == labels.cpu().detach().numpy());
-      count += FLAGS.batch_size;
+    with no_grad():
+      lenet.eval(); # model in evaluating mode
+      for batch_id, (images, labels) in enumerate(testset):
+        images, labels = images.to(location), labels.to(location);
+        preds = lenet(images);
+        idx = np.argmax(preds.cpu().detach().numpy(), axis = -1);
+        correct_count += np.sum(idx == labels.cpu().detach().numpy());
+        count += FLAGS.batch_size;
     print('accuracy = %f' % (correct_count / count));
   # save model at the end
   if not exists('models'): mkdir('models');
