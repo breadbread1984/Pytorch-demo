@@ -41,6 +41,7 @@ def main(unused_argv):
     count = 0;
     correct_count = 0;
     for batch_id, (images, labels) in enumerate(testset):
+      images, labels = images.to(location), labels.to(location);
       preds = lenet(images);
       idx = np.argmax(preds.detach().numpy(), axis = -1);
       correct_count += np.sum(idx == labels.detach().numpy());
