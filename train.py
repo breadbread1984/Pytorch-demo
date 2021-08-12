@@ -21,7 +21,7 @@ flags.DEFINE_enum('device', default = 'cpu', enum_values = ['cpu', 'cuda'], help
 def main(unused_argv):
 
   location = device(FLAGS.device);
-  trainset, testset = load_dataset(FLAGS.batch_size);
+  trainset, testset = load_dataset(FLAGS.batch_size if FLAGS.device != 'cuda' else FLAGS.batch_size * device_count());
   lenet = LeNet();
   if FLAGS.device == 'cuda' and device_count() > 1:
     lenet = DataParallel(lenet);
