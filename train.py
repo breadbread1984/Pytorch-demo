@@ -43,8 +43,8 @@ def main(unused_argv):
     for batch_id, (images, labels) in enumerate(testset):
       images, labels = images.to(location), labels.to(location);
       preds = lenet(images);
-      idx = np.argmax(preds.detach().numpy(), axis = -1);
-      correct_count += np.sum(idx == labels.detach().numpy());
+      idx = np.argmax(preds.cpu().detach().numpy(), axis = -1);
+      correct_count += np.sum(idx == labels.cpu().detach().numpy());
       count += FLAGS.batch_size;
     print('accuracy = %f' % (correct_count / count));
   # save model at the end
