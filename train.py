@@ -8,6 +8,7 @@ from torch.optim import Adam;
 from torch.nn import CrossEntropyLoss, DataParallel;
 from torch import device, save, no_grad;
 from torch.cuda import device_count;
+from torch.utils.tensorboard import SummaryWriter;
 from models import LeNet;
 from create_dataset import load_dataset;
 
@@ -30,6 +31,8 @@ def main(unused_argv):
   lenet.to(location);
   optimizer = Adam(lenet.parameters(), lr = 1e-3);
   crossentropy = CrossEntropyLoss();
+  tb_writer = SummaryWriter(log_dir = 'summaries');
+  global_steps = 0;
   for epoch in range(FLAGS.epochs):
     lenet.train(); # model in training mode
     for batch_id, (images, labels) in enumerate(trainset):
@@ -41,9 +44,11 @@ def main(unused_argv):
       optimizer.step(); # apply gradients
       if batch_id % FLAGS.print_interval == 0:
         print('loss = %f' % loss);
+        tb_writer.add_scalar('loss', loss, global_steps);
       if batch_id % FLAGS.checkpoint_steps == 0:
         if not exists('models'): mkdir('models');
         save(lenet, join('models', 'lenet.pkl'));
+      global_steps += 1;
     count = 0;
     correct_count = 0;
     with no_grad():
