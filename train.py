@@ -6,7 +6,7 @@ from absl import app, flags;
 import numpy as np;
 from torch.optim import Adam;
 from torch.nn import CrossEntropyLoss;
-from torch import save;
+from torch import device, save;
 from models import LeNet;
 from create_dataset import load_dataset;
 
@@ -15,15 +15,19 @@ flags.DEFINE_integer('epochs', 100, 'training epoch number');
 flags.DEFINE_integer('batch_size', 32, 'batch size');
 flags.DEFINE_integer('print_interval', 100, 'how many training steps for each console output');
 flags.DEFINE_integer('checkpoint_steps', 1000, 'how many training steps for a checkpoint');
+flags.DEFINE_enum('device', default = 'cpu', enum_values = ['cpu', 'cuda'], help = 'device');
 
 def main(unused_argv):
 
+  location = device(FLAGS.device);
   trainset, testset = load_dataset(FLAGS.batch_size);
   lenet = LeNet();
+  lenet.to(location);
   optimizer = Adam(lenet.parameters(), lr = 1e-3);
   crossentropy = CrossEntropyLoss();
   for epoch in range(FLAGS.epochs):
     for batch_id, (images, labels) in enumerate(trainset):
+      images, labels = images.to(location), labels.to(location); # move to device
       optimizer.zero_grad(); # zero gradients
       preds = lenet(images);
       loss = crossentropy(preds, labels);
