@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 
+from os import mkdir;
+from os.path import join, exists;
 from absl import app, flags;
 import numpy as np;
 from torch.optim import Adam;
 from torch.nn import CrossEntropyLoss;
+from torch import save;
 from models import LeNet;
 from create_dataset import load_dataset;
 
@@ -11,6 +14,7 @@ FLAGS = flags.FLAGS;
 flags.DEFINE_integer('epochs', 100, 'training epoch number');
 flags.DEFINE_integer('batch_size', 32, 'batch size');
 flags.DEFINE_integer('print_interval', 100, 'how many training steps for each console output');
+flags.DEFINE_integer('checkpoint_steps', 1000, 'how many training steps for a checkpoint');
 
 def main(unused_argv):
 
@@ -27,14 +31,20 @@ def main(unused_argv):
       optimizer.step(); # apply gradients
       if batch_id % FLAGS.print_interval == 0:
         print('loss = %f' % loss);
+      if batch_id % FLAGS.checkpoint_steps == 0:
+        if not exists('models'): mkdir('models');
+        save(lenet, join('models', 'lenet.pkl'));
     count = 0;
     correct_count = 0;
     for batch_id, (images, labels) in enumerate(testset):
       preds = lenet(images);
-      idx = np.argmax(preds, axis = -1);
+      idx = np.argmax(preds.detach().numpy(), axis = -1);
       correct_count += np.sum(idx == labels);
       count += FLAGS.batch_size;
     print('accuracy = %f' % (correct_count / count));
+  # save model at the end
+  if not exists('models'): mkdir('models');
+  save(lenet, join('models', 'lenet.pkl'));
 
 if __name__ == "__main__":
 
