@@ -27,7 +27,9 @@ class LeNet(nn.Module):
 
 if __name__ == "__main__":
 
+  from torchviz import make_dot;
+  inputs = torch.zeros(1,1,28,28, dtype = torch.float, requires_grad = True);
   lenet = LeNet();
-  inputs = torch.randn(1,1,28,28);
-  print(lenet(inputs).shape);
+  results = lenet(inputs);
+  make_dot(results);
 
