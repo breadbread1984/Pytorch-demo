@@ -5,8 +5,9 @@ from os.path import join, exists;
 from absl import app, flags;
 import numpy as np;
 from torch.optim import Adam;
-from torch.nn import CrossEntropyLoss;
+from torch.nn import CrossEntropyLoss, DataParallel;
 from torch import device, save;
+from torch.cuda import device_count;
 from models import LeNet;
 from create_dataset import load_dataset;
 
@@ -22,6 +23,8 @@ def main(unused_argv):
   location = device(FLAGS.device);
   trainset, testset = load_dataset(FLAGS.batch_size);
   lenet = LeNet();
+  if FLAGS.device == 'cuda' and device_count() > 1:
+    lenet = DataParallel(lenet);
   lenet.to(location);
   optimizer = Adam(lenet.parameters(), lr = 1e-3);
   crossentropy = CrossEntropyLoss();
